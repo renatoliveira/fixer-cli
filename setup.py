@@ -12,7 +12,7 @@ setup(
     author="Renato O.",
     url="",
     py_modules=['fixer'],
-    license=readfile('LICENSE')
+    license=readfile('LICENSE'),
     entry_points={
         'console_scripts': [
             'fixer = fixer:handle_options'
