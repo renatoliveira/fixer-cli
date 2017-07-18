@@ -6,7 +6,7 @@ def readfile(filename):
 
 setup(
     name="fixer",
-    version="1.0.0",
+    version="2.0.0",
     description="",
     long_description=readfile('README.md'),
     author="Renato O.",

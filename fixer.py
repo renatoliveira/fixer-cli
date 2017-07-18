@@ -34,13 +34,13 @@ def print_conversion(rates):
         day_diff = round((1 - (most_recent_rate / yesterday_rate)) * 100, 3)
         week_diff = round((1 - (most_recent_rate / last_week_rate)) * 100, 3)
         if most_recent_rate > yesterday_rate:
-            print(Fore.GREEN + '🡹 ' + Fore.RESET + str(day_diff) + '% since yesterday')
+            print(Fore.GREEN + '▲ ' + Fore.RESET + str(abs(day_diff)) + '% since yesterday')
         else:
-            print(Fore.RED + '🡻 ' + Fore.RESET + str(day_diff) + '% since yesterday')
+            print(Fore.RED + '▼ ' + Fore.RESET + str(abs(day_diff)) + '% since yesterday')
         if most_recent_rate > last_week_rate:
-            print(Fore.GREEN + '🡹 ' + Fore.RESET + str(week_diff) + '% since last week')
+            print(Fore.GREEN + '▲ ' + Fore.RESET + str(abs(week_diff)) + '% since last week')
         else:
-            print(Fore.RED + '🡻 ' + Fore.RESET + str(week_diff) + '% since last week')
+            print(Fore.RED + '▼ ' + Fore.RESET + str(abs(week_diff)) + '% since last week')
         print(Fore.RESET)
 
 def handle_options():
