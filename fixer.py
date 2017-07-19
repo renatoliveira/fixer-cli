@@ -23,8 +23,8 @@ def print_conversion(rates):
         most_recent_rate = rates[0]['rates'][sys.argv[2].upper()]
         yesterday_rate = rates[1]['rates'][sys.argv[2].upper()]
         last_week_rate = rates[2]['rates'][sys.argv[2].upper()]
-        print('1 ' + sys.argv[1].upper() + ' is worth approximately ' + sys.argv[2].upper() +
-              ' ' + str(most_recent_rate) + ' today.')
+        print('1 ' + sys.argv[1].upper() + ' is worth approximately ' +
+              str(most_recent_rate) + ' ' + sys.argv[2].upper() + ' today.')
         print('')
         if len(sys.argv) == 4:
             val = round(float(sys.argv[3]) * most_recent_rate, 2)
