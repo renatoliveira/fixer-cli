@@ -1,5 +1,4 @@
 """requets module and requets mocks"""
-import os
 import unittest
 from datetime import date, timedelta
 import requests_mock
