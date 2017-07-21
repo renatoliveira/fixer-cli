@@ -1,6 +1,7 @@
 """Database operations to store history data"""
 import os
 import sqlite3
+from datetime import date
 
 class LocalHistory:
     """
@@ -14,10 +15,10 @@ class LocalHistory:
 
     def create_tables(self, path):
         """Creates the necessary table"""
-        self.connection = sqlite3.connect(path)
+        self.connection = sqlite3.connect(path, detect_types=sqlite3.PARSE_DECLTYPES)
         self.cursor = self.connection.cursor()
         self.cursor.execute('''CREATE TABLE rates
-                          (retrieved_at DATE, tox TEXT, fromx TEXT, rate DOUBLE)''')
+                          (retrieved_at DATE, fromx TEXT, tox TEXT, rate DOUBLE)''')
         self.connection.commit()
 
     def directory_check(self):
@@ -37,21 +38,30 @@ class LocalHistory:
         self.connection.commit()
         self.connection.close()
 
-    def get_rate(self, tox, fromx, when):
+    def get_rate(self, fromx, tox, when):
         """Tries to get a currency rate conversion at a certain date"""
-        args = (tox, fromx, when)
-        self.cursor.execute('SELECT * FROM rates WHERE tox=? AND fromx=? AND retrieved_at=?', args)
+        args = (fromx.upper(), tox.upper(), when)
+        self.cursor.execute('SELECT * FROM rates WHERE fromx=? AND tox=? AND retrieved_at=?', args)
         return self.cursor.fetchone()
 
-    def get_rates(self, tox, fromx):
+    def get_rates(self, fromx, tox):
         """Gets all conversions from X to Y"""
-        args = (tox, fromx)
-        self.cursor.execute('SELECT * FROM rates WHERE tox=? AND fromx=?\
+        args = (fromx, tox)
+        self.cursor.execute('SELECT * FROM rates WHERE fromx=? AND tox=?\
                              ORDER BY retrieved_at ASC', args)
         return self.cursor.fetchall()
 
-    def store_rate(self, tox, fromx, when, rate):
+    def set_rate(self, fromx, tox, when, rate):
         """Stores the conversion for later use"""
-        args = (when, tox, fromx, rate)
+        args = (when, fromx.upper(), tox.upper(), rate)
         self.cursor.execute('INSERT INTO rates VALUES (?, ?, ?, ?)', args)
         self.connection.commit()
+
+    def rate_exists(self, fromx, tox, when):
+        """Checks if rate is already stored"""
+        args = (fromx.upper(), tox.upper(), when)
+        self.cursor.execute('SELECT * FROM rates WHERE fromx=? AND tox=? AND retrieved_at=?', args)
+        result = self.cursor.fetchall()
+        if not result:
+            return False
+        return True

@@ -11,22 +11,26 @@ class TestRequetsParsing(unittest.TestCase):
     def test_latest(self):
         """Test getting the latest currency"""
         with requests_mock.Mocker() as m:
+            today = date.today()
             yesterday = date.today() - timedelta(1)
             last_week = date.today() - timedelta(7)
             api_base_url = 'http://api.fixer.io/'
             m.register_uri('GET',
-                           api_base_url + 'latest?base=USD',
-                           text='{"status":200,"rates":{"EUR":0.8}}')
+                           api_base_url + today.strftime('%Y-%m-%d') + '?base=USD',
+                           text='{"status":200,"rates":{"EUR":0.8},"date":"' +
+                           str(today) + '"}')
             m.register_uri('GET',
-                           api_base_url + yesterday.strftime('%Y-%m-%d'),
-                           text='{"status":200,"rates":{"EUR":0.8}}')
+                           api_base_url + yesterday.strftime('%Y-%m-%d') + '?base=USD',
+                           text='{"status":200,"rates":{"EUR":0.8},"date":"' +
+                           str(yesterday) + '"}')
             m.register_uri('GET',
-                           api_base_url + last_week.strftime('%Y-%m-%d'),
-                           text='{"status":200,"rates":{"EUR":0.8}}')
-            rates = fixer.get_rates('USD')
-            self.assertNotEqual(None, rates[0]['rates'])
-            self.assertNotEqual(None, rates[0]['rates']['EUR'])
-            self.assertEqual(0.8, rates[0]['rates']['EUR'])
+                           api_base_url + last_week.strftime('%Y-%m-%d') + '?base=USD',
+                           text='{"status":200,"rates":{"EUR":0.8},"date":"' +
+                           str(last_week) + '"}')
+            rates = fixer.get_rates('USD', 'EUR')
+            self.assertNotEqual(None, rates[0].rate)
+            self.assertNotEqual(None, rates[0].rate)
+            self.assertEqual(0.8, rates[0].rate)
 
     def test_database(self):
         """Testing the database operations"""
@@ -35,9 +39,10 @@ class TestRequetsParsing(unittest.TestCase):
         yesterday = date.today() - timedelta(1)
         last_week = date.today() - timedelta(7)
         history = LocalHistory(db_path)
-        history.store_rate('USD', 'EUR', date.today(), 0.8)
-        history.store_rate('USD', 'EUR', yesterday, 0.5)
-        history.store_rate('USD', 'EUR', last_week, 0.2)
+        history.create_tables(db_path)
+        history.set_rate('USD', 'EUR', date.today(), 0.8)
+        history.set_rate('USD', 'EUR', yesterday, 0.5)
+        history.set_rate('USD', 'EUR', last_week, 0.2)
         today_record = history.get_rate('USD', 'EUR', today)
         yesterday_record = history.get_rate('USD', 'EUR', yesterday)
         last_week_record = history.get_rate('USD', 'EUR', last_week)
