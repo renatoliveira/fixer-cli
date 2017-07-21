@@ -1,7 +1,6 @@
 """Database operations to store history data"""
 import os
 import sqlite3
-from datetime import date
 
 class LocalHistory:
     """
