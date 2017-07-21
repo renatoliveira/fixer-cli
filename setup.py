@@ -6,12 +6,12 @@ def readfile(filename):
 
 setup(
     name="fixer",
-    version="2.0.0",
+    version="3.0.1",
     description="",
     long_description=readfile('README.md'),
     author="Renato O.",
     url="",
-    py_modules=['fixer'],
+    py_modules=['fixer', 'history'],
     license=readfile('LICENSE'),
     entry_points={
         'console_scripts': [
