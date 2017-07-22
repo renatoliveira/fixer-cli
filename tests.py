@@ -28,9 +28,9 @@ class TestRequetsParsing(unittest.TestCase):
                            text='{"status":200,"rates":{"EUR":0.8},"date":"' +
                            str(last_week) + '"}')
             rates = fixer.get_rates('USD', 'EUR')
-            self.assertNotEqual(None, rates[0].rate)
-            self.assertNotEqual(None, rates[0].rate)
-            self.assertEqual(0.8, rates[0].rate)
+            self.assertNotEqual(None, rates[0]['rate'])
+            self.assertNotEqual(None, rates[0]['rate'])
+            self.assertEqual(0.8, rates[0]['rate'])
 
     def test_database(self):
         """Testing the database operations"""

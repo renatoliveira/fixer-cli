@@ -14,27 +14,20 @@ TODAY = date.today()
 YESTERDAY = date.today() - timedelta(1)
 LAST_WEEK = date.today() - timedelta(7)
 
-class Rate:
-    def __init__(self, fromx, tox, when, rate):
-        self.fromx = fromx.upper()
-        self.tox = tox.upper()
-        self.retrieved_at = when
-        self.rate = rate
-
-def save_to_history(fromx, tox, latest_rate, latest_rate_date, yesterday_rate, last_week_rate):
-    """Saves to the history the rates that were retrieved from the API."""
-    DB.set_rate(fromx, tox, latest_rate_date, latest_rate)
-    DB.set_rate(fromx, tox, YESTERDAY, yesterday_rate)
-    DB.set_rate(fromx, tox, LAST_WEEK, last_week_rate)
-    DB.close()
-
 def parse_api_result(from_currency, to_currency, result):
+    """Returns a Rate object from the data retrieved via API"""
     rate = result['rates'][to_currency.upper()]
     when = datetime.strptime(result['date'], '%Y-%m-%d').date()
-    return Rate(from_currency, to_currency, when, rate)
+    return {'from':from_currency, 'to':to_currency, 'date':when, 'rate':rate}
 
 def parse_db_result(result):
-    return Rate(result[1], result[2], result[0], result[3])
+    """Returns a Rate object from the data from the database"""
+    return {'from':result[1], 'to':result[2], 'date':result[0], 'rate':result[3]}
+
+def get_from_api(exchange_date, base):
+    """Queries the API for rates on a specific date"""
+    return requests.get('http://api.fixer.io/' +
+                        exchange_date.strftime('%Y-%m-%d') + '?base=' + base).json()
 
 def get_rates(from_currency, to_currency):
     """
@@ -45,27 +38,24 @@ def get_rates(from_currency, to_currency):
     last_week_rates = None
     rates = []
     if not DB.rate_exists(from_currency, to_currency, TODAY):
-        latest_rates = requests.get('http://api.fixer.io/' + TODAY.strftime('%Y-%m-%d') +
-                                    '?base=' + from_currency).json()
+        latest_rates = get_from_api(TODAY, from_currency)
         rates.append(parse_api_result(from_currency, to_currency, latest_rates))
     else:
         latest_rates = parse_db_result(DB.get_rate(from_currency, to_currency, TODAY))
         rates.append(latest_rates)
     if not DB.rate_exists(from_currency, to_currency, YESTERDAY):
-        yesterday_rates = requests.get('http://api.fixer.io/' + YESTERDAY.strftime('%Y-%m-%d') +
-                                       '?base=' + from_currency).json()
+        yesterday_rates = get_from_api(YESTERDAY, from_currency)
         rate = parse_api_result(from_currency, to_currency, yesterday_rates)
         rates.append(rate)
-        DB.set_rate(from_currency, to_currency, YESTERDAY, rate.rate)
+        DB.set_rate(from_currency, to_currency, YESTERDAY, rate['rate'])
     else:
         yesterday_rates = parse_db_result(DB.get_rate(from_currency, to_currency, YESTERDAY))
         rates.append(yesterday_rates)
     if not DB.rate_exists(from_currency, to_currency, LAST_WEEK):
-        last_week_rates = requests.get('http://api.fixer.io/' + LAST_WEEK.strftime('%Y-%m-%d') +
-                                       '?base=' + from_currency).json()
+        last_week_rates = get_from_api(LAST_WEEK, from_currency)
         rate = parse_api_result(from_currency, to_currency, last_week_rates)
         rates.append(rate)
-        DB.set_rate(from_currency, to_currency, LAST_WEEK, rate.rate)
+        DB.set_rate(from_currency, to_currency, LAST_WEEK, rate['rate'])
     else:
         last_week_rates = parse_db_result(DB.get_rate(from_currency, to_currency, LAST_WEEK))
         rates.append(last_week_rates)
@@ -74,16 +64,16 @@ def get_rates(from_currency, to_currency):
 def print_conversion(rates):
     """Prints the text on screen"""
     if len(rates) == 3:
-        most_recent_rate = rates[0].rate
-        yesterday_rate = rates[1].rate
-        last_week_rate = rates[2].rate
-        print('1 ' + rates[0].fromx + ' is worth approximately ' + rates[0].tox + ' ' +
-              str(rates[0].rate) + '.')
+        most_recent_rate = rates[0]['rate']
+        yesterday_rate = rates[1]['rate']
+        last_week_rate = rates[2]['rate']
+        print('1 ' + rates[0]['from'] + ' is worth approximately ' + rates[0]['to'] + ' ' +
+              str(rates[0]['rate']) + '.')
         if len(sys.argv) == 4:
             value_to_convert = float(sys.argv[3])
             val = round(float(value_to_convert) * most_recent_rate, 2)
-            print('Latest exchange for ' + rates[0].fromx + ' ' + str(value_to_convert) + ' to ' +
-                  rates[0].tox + ' is ' + str(val) + '.')
+            print('Latest exchange for ' + rates[0]['from'] + ' ' + str(value_to_convert) + ' to ' +
+                  rates[0]['to'] + ' is ' + str(val) + '.')
 
         print('')
         day_diff = round((1 - (most_recent_rate / yesterday_rate)) * 100, 3)

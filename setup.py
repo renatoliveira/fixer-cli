@@ -1,12 +1,14 @@
+"""Setup module"""
 from setuptools import setup
 
 def readfile(filename):
-    with open(filename, 'r+') as f:
-        return f.read()
+    """Get readfile"""
+    with open(filename, 'r+') as readmefile:
+        return readmefile.read()
 
 setup(
     name="fixer",
-    version="3.0.1",
+    version="3.0.3",
     description="",
     long_description=readfile('README.md'),
     author="Renato O.",
